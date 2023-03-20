@@ -1,0 +1,11 @@
+name = "mesh2STL"
+uuid = "44f05b4e-11b4-46bf-a5a7-f6e163b7dfda"
+authors = ["tom <tom.rottier@manchester.ac.uk>"]
+version = "0.1.0"
+
+[deps]
+FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+MeshIO = "7269a6da-0436-5bbc-96c2-40638cbb6118"
+MeshViz = "9ecf9c4f-6e5a-4b5e-83ae-06f2c7a661d8"
+Meshes = "eacbb407-ea5a-433e-ab97-5258b1ca43fa"
