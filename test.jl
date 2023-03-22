@@ -1,4 +1,4 @@
-using Meshes, MeshViz
+using Meshes, MeshViz, Rotations
 import GLMakie
 using LinearAlgebra
 
@@ -125,8 +125,8 @@ ztmax(ζ) = 0.1 / (1 + 3.546ζ^1.4)
 
 function wing_mesh(S, A, zcmax, ztmax, E, c₀)
     # mesh parameters
-    Nchord = 100 # number of points per aerofoil
-    Nspan = 100 # number of aerofoils
+    Nchord = 10 # number of points per aerofoil
+    Nspan = 10 # number of aerofoils
 
     # spanwise and chordwise locations
     ζs = range(0, 1, length=Nspan)
@@ -145,15 +145,25 @@ function wing_mesh(S, A, zcmax, ztmax, E, c₀)
         # upper and lower surfaces of aerofoil
         upper_surface = camber_line + thickness_dist
         lower_surface = camber_line - thickness_dist
-        surface = [upper_surface; lower_surface]
+        # surface = [upper_surface; lower_surface]
 
         # aerofoils points at current spanwise coordinate
         # using aircraft coordinate system: x forward, y spanwise, z vertical
         aerofoil1 = map(zip(ηs, upper_surface)) do (η, p)
             Meshes.Point3(η * chord(ζ, E, c₀), ζ, p * chord(ζ, E, c₀))
+            # __v = [η * chord(ζ, E, c₀), 0.0, p * chord(ζ, E, c₀)]
+            # __v = ζ ≥ 0.0 ? Vector(RotX(deg2rad(-42)) * __v) : __v
+            # __v[2] += ζ
+            # Meshes.Point3(__v)
+
         end
         aerofoil2 = map(zip(ηs, lower_surface)) do (η, p)
             Meshes.Point3(η * chord(ζ, E, c₀), ζ, p * chord(ζ, E, c₀))
+            # __v = [η * chord(ζ, E, c₀), 0.0, p * chord(ζ, E, c₀)]
+            # __v = ζ ≥ 0.0 ? Vector(RotX(deg2rad(-42)) * __v) : __v
+            # __v[2] += ζ
+            # Meshes.Point3(__v)
+
         end
 
         aerofoil = [aerofoil1; reverse(aerofoil2)]
@@ -162,11 +172,23 @@ function wing_mesh(S, A, zcmax, ztmax, E, c₀)
         append!(points, aerofoil)
     end
 
+    # bend lower arm
+    Npoints = length(points)
+    points[(Npoints÷2):end] = map(points[(Npoints÷2):end]) do point
+        rot = recenter(LinearMap(RotZ(-π / 4)), [0.0, 0.5, 0.0])
+        temp = rot(point.coords) |> Vector
+
+        return Point3f(temp...)
+    end
+
+
+
+
     # connections
     faces = NTuple{3,Int64}[]
     for i in 1:Nspan-1
         for j in 1:Nchord-1
-            a = (i - 1) * Nspan + j # cross-section 1, point 1
+            a = (i - 1) * Nchord + j # cross-section 1, point 1
             b = a + 1 # cross-section 1, point 2
             c = a + Nchord # cross-section 2, point 1
             d = c + 1
